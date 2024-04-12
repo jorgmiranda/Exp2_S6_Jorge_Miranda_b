@@ -6,161 +6,221 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sumativa.b.consultorio.model.AtencionMedica;
 import com.sumativa.b.consultorio.model.ConsultaMedica;
-import com.sumativa.b.consultorio.model.HistorialMedico;
 import com.sumativa.b.consultorio.model.Paciente;
+import com.sumativa.b.consultorio.service.AtencionMedicaService;
+import com.sumativa.b.consultorio.service.ConsultaMedicaService;
+import com.sumativa.b.consultorio.service.PacienteService;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
+@RequestMapping("/pacientes")
 public class ConsultorioController {
 
-    List<Paciente> pacientes = new ArrayList<>();
+    private static final Logger log = LoggerFactory.getLogger(ConsultorioController.class);
 
-    public ConsultorioController(){
+    @Autowired
+    private PacienteService pacienteService;
 
-        //Se definen los Pacientes
-        pacientes.add(new Paciente(1 ,"11.289.528-0", "Juanito Perez", "juan.perez@gmail.com", new Date(2024), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(2), generarAtencionesMedicas(5))));
-        pacientes.add(new Paciente(2 ,"33.666.999-8", "Juan Pablito", "juan.pablo@gmail.com", new Date(5), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(4), generarAtencionesMedicas (4))));
-        pacientes.add(new Paciente(3, "12.345.678-9", "Chunito Perez", "chunito.perez@gmail.com", new Date(14), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(3), generarAtencionesMedicas(1))));
-        pacientes.add(new Paciente(4, "23.456.789-0", "María González", "maria.gonzalez@gmail.com", new Date(3), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(5), generarAtencionesMedicas(3))));
-        pacientes.add(new Paciente(5, "34.567.890-1", "Pedro Rodríguez", " pedro.rodriguez@gmail.com", new Date(2), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(2), generarAtencionesMedicas(4))));
-        pacientes.add(new Paciente(6, "45.678.901-2", "Ana López", " ana.lopez@gmail.com", new Date(2024), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(3), generarAtencionesMedicas(5))));
-        pacientes.add(new Paciente(7, "56.789.012-3", "Carlos Martínez", "carlos.martinez@gmail.com", new Date(10), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(1), generarAtencionesMedicas(1))));
-        pacientes.add(new Paciente(8, "67.890.123-4", "Laura Sánchez", "laura.sanchez@gmail.com", new Date(79), "calle 123, La Reina", 
-                        new HistorialMedico(generarConsultasMedicas(4), generarAtencionesMedicas(5))));
-    }
-    
+    @Autowired 
+    private ConsultaMedicaService consultaMedicaService;
 
-    @GetMapping("/pacientes")
+    @Autowired
+    private AtencionMedicaService atencionMedicaService;
+
+    @GetMapping
     public List<Paciente> getPacientes() {
-        return pacientes;
+        return pacienteService.getAllPaciente();
     }
     
-    @GetMapping("/pacientes/{id}")
-    public Paciente getPacienteById(@PathVariable int id) {
-        for(Paciente p: pacientes){
-            if(p.getId() == id){
-                return p;
-            }
+    @GetMapping("/{id}")
+    public ResponseEntity<Object> getPacienteById(@PathVariable Long id) {
+        Optional<Paciente> paciente = pacienteService.getPacienteById(id);
+        if(paciente.isEmpty()){
+            log.error("No se encontro ningun Paciente con ese ID {} ", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun Paciente con ese ID"));
         }
-
-        return new Paciente();
+        return ResponseEntity.ok(paciente.get());
     }
     
-    @GetMapping("/pacientes/{id}/historial")
-    public HistorialMedico getPacienteHistorialMedico(@PathVariable int id) {
-        for(Paciente p: pacientes){
-            if(p.getId() == id){
-                return p.getHistorialMedicos();
-            }
+    
+    @GetMapping("/{id}/consultas")
+    public ResponseEntity<Object> getConsultasPaciente(@PathVariable Long id) {
+        Optional<Paciente> paciente = pacienteService.getPacienteById(id);
+        if(paciente.isEmpty()){
+            log.error("No se encontro ningun Paciente con ese ID {} ", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun Paciente con ese ID"));
         }
+        return ResponseEntity.ok(paciente.get().getConsultas());
+    }
 
-        return null;
+    @GetMapping("/{id}/atenciones")
+    public ResponseEntity<Object> getAtencionesPaciente(@PathVariable Long id) {
+        Optional<Paciente> paciente = pacienteService.getPacienteById(id);
+        if(paciente.isEmpty()){
+            log.error("No se encontro ningun Paciente con ese ID {} ", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun Paciente con ese ID"));
+        }
+        return ResponseEntity.ok(paciente.get().getAtenciones());
     }
     
-    @GetMapping("/pacientes/{id}/historial/consultas")
-    public List<ConsultaMedica> getConsultasPaciente(@PathVariable int id) {
-        for(Paciente p: pacientes){
-            if(p.getId() == id){
-                return p.getHistorialMedicos().getConsultas();
-            }
-        }
-        return null;
-    }
-
-    @GetMapping("/pacientes/{id}/historial/atenciones")
-    public List<AtencionMedica> getAtencionesPaciente(@PathVariable int id) {
-        for(Paciente p: pacientes){
-            if(p.getId() == id){
-                return p.getHistorialMedicos().getAtenciones();
-            }
-        }
-        return null;
-    }
-    
-
     @GetMapping("/pacientes/contar")
-    public HashMap<String, Integer> getCantidadPacientes() {
-        HashMap<String, Integer> cantidad = new HashMap<String, Integer>();
-        cantidad.put("Cantidad Pacientes", pacientes.size());
-        return cantidad;
+    public int getCantidadPacientes() {
+        List<Paciente> pacientes = pacienteService.getAllPaciente();
+        return pacientes.size();
     }
+
+    @PostMapping
+    public ResponseEntity<Object> crearPaciente(@RequestBody Paciente paciente){
+         // se valida que el campo nombre no este vacio
+         if(paciente.getNombre() == null){
+            log.error("El Nombre Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar el nombre del paciente"));
+        }
+
+        // se valida que el campo Rut no este vacio
+        if(paciente.getRut() == null){
+            log.error("El Rut del Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar el rut del paciente"));
+        }
+
+         // se valida que el campo dirección no este vacio
+        if(paciente.getDireccion() == null){
+            log.error("La dirección del Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar la direccion del paciente"));
+        }
+
+         // se valida que el campo fecha de nacimiento no este vacio
+        if(paciente.getFechaNacimeinto() == null){
+            log.error("La fecha de nacimiento del  Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar la fecha de nacimiento del paciente"));
+        }
+
+         // se valida que el campo correo no este vacio
+         if(paciente.getCorreo() == null){
+            log.error("El correo del Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar el correo del paciente"));
+        }
+
+        Paciente pacienteCreado = pacienteService.crearPaciente(paciente);
+        if(pacienteCreado == null){
+            log.error("Error al crear el Usuario");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Error al crear el Usuario"));
+        }
+
+        // Asignar atenciones si estas son creadas con el paciente
+        if(pacienteCreado.getAtenciones() != null){
+            for(AtencionMedica a : pacienteCreado.getAtenciones()){
+                a.setPaciente(pacienteCreado);
+                atencionMedicaService.actualizarAtencionMedica(a.getId(), a);
+            }   
+        }
+
+        // Asignar consultas si estas son creadas con el paciente
+        if(pacienteCreado.getConsultas() != null){
+            for(ConsultaMedica c : pacienteCreado.getConsultas()){
+                c.setPaciente(pacienteCreado);
+                consultaMedicaService.actualizarConsultaMedica(c.getId(), c);
+            }   
+        }
+
+        return ResponseEntity.ok(pacienteCreado);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> eliminarPaciente(@PathVariable Long id){
+        Optional<Paciente> paciente = pacienteService.getPacienteById(id);
+        if(paciente.isEmpty()){
+            log.error("No se encontro ningun Paciente con ese ID {} ", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun Paciente con ese ID"));
+        }
+        pacienteService.eliminarPaciente(id);
+        return ResponseEntity.ok("Paciente Eliminado");
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Object> actualizarPaciente(@PathVariable Long id, @RequestBody Paciente paciente){
+        // Valida que el paciente exista
+        Optional<Paciente> pacienteBuscado = pacienteService.getPacienteById(id);
+        if(pacienteBuscado.isEmpty()){
+            log.error("No se encontro ningun Paciente con ese ID {} ", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun Paciente con ese ID"));
+        }
+
+        // validaciones adicionales Paciente
+        if(paciente.getNombre() == null){
+            log.error("El Nombre Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar el nombre del paciente"));
+        }
+
+        // se valida que el campo Rut no este vacio
+        if(paciente.getRut() == null){
+            log.error("El Rut del Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar el rut del paciente"));
+        }
+
+         // se valida que el campo dirección no este vacio
+        if(paciente.getDireccion() == null){
+            log.error("La dirección del Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar la direccion del paciente"));
+        }
+
+         // se valida que el campo fecha de nacimiento no este vacio
+        if(paciente.getFechaNacimeinto() == null){
+            log.error("La fecha de nacimiento del  Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar la fecha de nacimiento del paciente"));
+        }
+
+         // se valida que el campo correo no este vacio
+         if(paciente.getCorreo() == null){
+            log.error("El correo del Paciente esta vacio");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Debe ingresar el correo del paciente"));
+        }
+
+        //Preservar Atenciones y Consultas
+        Paciente pacienteActual = pacienteBuscado.get();
+        pacienteActual.setRut(paciente.getRut());
+        pacienteActual.setNombre(paciente.getNombre());
+        pacienteActual.setFechaNacimeinto(paciente.getFechaNacimeinto());
+        pacienteActual.setDireccion(paciente.getDireccion());
+        pacienteActual.setCorreo(paciente.getCorreo());
+
+        Paciente u = pacienteService.actualizarPaciente(id, pacienteActual);
+        return ResponseEntity.ok(u);
+    
+    }
+
     
 
-
-
-    public List<AtencionMedica> generarAtencionesMedicas(int indice){
-        List<AtencionMedica> atenciones = new ArrayList<>();
-        String[] tipoAtencion = new String[] {"Hospitalización","Procedimiento Quirúrgico","Tratamiento","Otro", "etc."};
-        List<Calendar> listaFechas = new ArrayList<>();
-        
-        // Crear fechas predefinidas
-        Calendar fecha1 = new GregorianCalendar(2023, Calendar.JANUARY, 15);
-        Calendar fecha2 = new GregorianCalendar(2023, Calendar.MAY, 7);
-        Calendar fecha3 = new GregorianCalendar(2023, Calendar.AUGUST, 22);
-        Calendar fecha4 = new GregorianCalendar(2023, Calendar.NOVEMBER, 3);
-        Calendar fecha5 = new GregorianCalendar(2024, Calendar.FEBRUARY, 10);
-
-        // Agregar las fechas a la lista
-        listaFechas.add(fecha1);
-        listaFechas.add(fecha2);
-        listaFechas.add(fecha3);
-        listaFechas.add(fecha4);
-        listaFechas.add(fecha5);
-        
-        for(int i = 0; i < indice; i++){
-
-            AtencionMedica a = new AtencionMedica(listaFechas.get(i).getTime(), 
-                                tipoAtencion[i], "Esta es una descripcion de ejemplo: "+i);
-            atenciones.add(a);
+    static class ErrorResponse {
+        private final String message;
+    
+        public ErrorResponse(String message){
+            this.message = message;
+        }
+    
+        public String getMessage(){
+            return message;
         }
         
-        return atenciones;
     }
 
-
-    public List<ConsultaMedica> generarConsultasMedicas(int indice){
-        List<ConsultaMedica> consultas = new ArrayList<>();
-        String[] motivoConsulta = new String[] {"Dolor abdominal", "Fiebre persistente", "Dolor de cabeza intenso", "COVID!", "Síntomas de gripe"};
-        String[] diagnosticos = new String[] {"Gastritis", "Neumonía", "Migraña", "COVID!!", "Resfriado común"};
-        String[] tratamientos = new String[] {"Antiacidos y dieta", "Antibióticos y reposo", "Analgésicos y descanso", "COVID!!!", "Descanso y líquidos"};
-
-
-        List<Calendar> listaFechas = new ArrayList<>();
-        
-        // Crear fechas predefinidas
-        Calendar fecha1 = new GregorianCalendar(2023, Calendar.JANUARY, 15);
-        Calendar fecha2 = new GregorianCalendar(2023, Calendar.MAY, 7);
-        Calendar fecha3 = new GregorianCalendar(2023, Calendar.AUGUST, 22);
-        Calendar fecha4 = new GregorianCalendar(2023, Calendar.NOVEMBER, 3);
-        Calendar fecha5 = new GregorianCalendar(2024, Calendar.FEBRUARY, 10);
-
-        // Agregar las fechas a la lista
-        listaFechas.add(fecha1);
-        listaFechas.add(fecha2);
-        listaFechas.add(fecha3);
-        listaFechas.add(fecha4);
-        listaFechas.add(fecha5);
-        
-        for(int i = 0; i < indice; i++){
-            ConsultaMedica c = new ConsultaMedica(listaFechas.get(i).getTime(), motivoConsulta[i],diagnosticos[i], tratamientos[i]);
-            consultas.add(c);
-        }
-        
-        return consultas;
-    }
 }
