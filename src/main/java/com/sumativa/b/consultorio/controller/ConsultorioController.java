@@ -1,4 +1,4 @@
-package com.sumativa.b.consultorio;
+package com.sumativa.b.consultorio.controller;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -7,6 +7,12 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.sumativa.b.consultorio.model.AtencionMedica;
+import com.sumativa.b.consultorio.model.ConsultaMedica;
+import com.sumativa.b.consultorio.model.HistorialMedico;
+import com.sumativa.b.consultorio.model.Paciente;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
