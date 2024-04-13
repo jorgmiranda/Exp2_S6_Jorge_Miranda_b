@@ -29,10 +29,10 @@ public class Paciente {
     private Date fechaNacimeinto;
     @Column(name = "direccion_paciente")
     private String direccion;
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<AtencionMedica> atenciones;
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ConsultaMedica> consultas;
     
