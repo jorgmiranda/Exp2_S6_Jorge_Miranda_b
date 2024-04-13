@@ -45,7 +45,7 @@ public class ConsultaMedicaController {
         Optional<ConsultaMedica> consulta = consultaMedicaService.getConsultaMedicaById(id);
         if(consulta.isEmpty()){
             log.error("No se encontro ninguna consulta medica con ese ID {} ", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun rol con ese ID"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ninguna consulta medica con ese ID"));
         }
         return ResponseEntity.ok(consulta);
     }
@@ -122,7 +122,7 @@ public class ConsultaMedicaController {
         Optional<ConsultaMedica> consulta = consultaMedicaService.getConsultaMedicaById(id);
         if(consulta.isEmpty()){
             log.error("No se encontro ninguna consulta medica con ese ID {} ", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun rol con ese ID"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ninguna consulta medica con ese ID"));
         }
 
         // Validaciones adicionales
@@ -163,7 +163,7 @@ public class ConsultaMedicaController {
         Optional<ConsultaMedica> consulta = consultaMedicaService.getConsultaMedicaById(id);
         if(consulta.isEmpty()){
             log.error("No se encontro ninguna consulta medica con ese ID {} ", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun rol con ese ID"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ninguna consulta medica con ese ID"));
         }
         consultaMedicaService.eliminarConsultaMedica(id);
         return ResponseEntity.ok("Consulta medica eliminada");

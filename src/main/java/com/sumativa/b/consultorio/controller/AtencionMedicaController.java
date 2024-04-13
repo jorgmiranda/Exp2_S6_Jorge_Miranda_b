@@ -46,7 +46,7 @@ public class AtencionMedicaController {
         Optional<AtencionMedica> atencion = atencionMedicaService.getAtencionMedicaById(id);
         if(atencion.isEmpty()){
             log.error("No se encontro ninguna atención medica con ese ID {} ", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun rol con ese ID"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ninguna atención medicacon ese ID"));
         }
         return ResponseEntity.ok(atencion);
     }
@@ -113,7 +113,7 @@ public class AtencionMedicaController {
         Optional<AtencionMedica> atencion = atencionMedicaService.getAtencionMedicaById(id);
         if(atencion.isEmpty()){
             log.error("No se encontro ninguna atención medica con ese ID {} ", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ningun rol con ese ID"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro ninguna atención medica con ese ID"));
         }
 
         // Validaciones adicionales
